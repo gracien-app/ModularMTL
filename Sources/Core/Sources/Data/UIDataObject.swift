@@ -12,6 +12,7 @@ public class UIDataObject: ObservableObject {
     public init() {}
     
     @Published public var frametime: Double = 0
+    @Published public var pointsCount: UInt = 500
    
     var resolution: (CGFloat, CGFloat) = (1300, 650)
     

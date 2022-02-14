@@ -15,6 +15,7 @@ public class VisualiserRenderer: Renderer {
     
     var data: UIDataObject
     var library: Library
+    var pointsBuffer: PointsBuffer<simd_float2>
     
     public init(with device: MTLDevice, _ data: UIDataObject) {
         self.device = device
@@ -22,27 +23,20 @@ public class VisualiserRenderer: Renderer {
         self.library = Library(with: device,
                                functions: ["animated"])
 
-        guard let texture = makeTextureRenderTarget() else {
+        guard let texture = TextureManager.getTexture(with: device,
+                                                      format: .bgra8Unorm_srgb,
+                                                      sizeWH: (Int(data.width / 2.0), Int(data.height)),
+                                                      type: .renderTarget)
+        else {
             fatalError("[Metal] Error creating render target texture.")
         }
-        self.renderTargetTexture = texture
-    }
-    
-    func makeTextureRenderTarget() -> MTLTexture? {
-        let texDescriptor = MTLTextureDescriptor()
-        texDescriptor.height = Int(data.height)
-        texDescriptor.width = Int(data.width / 2.0)
-        texDescriptor.pixelFormat = .bgra8Unorm_srgb
-        texDescriptor.usage = [.renderTarget, .shaderRead]
-        texDescriptor.textureType = .type2D
         
-        if let texture = device.makeTexture(descriptor: texDescriptor) {
-            return texture
-        }
-        return nil
+        self.renderTargetTexture = texture
+        self.pointsBuffer = PointsBuffer(with: device, size: data.pointsCount)
     }
     
     public func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer) {
+        pointsBuffer.updateStatus(points: data.pointsCount)
         return
     }
 }
