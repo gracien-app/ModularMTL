@@ -17,8 +17,7 @@ Written in **Swift** using **Metal API** and **SwiftUI**.
 
 ### Building
 - Clone the repository,
-- Use `swift build -c release --arch arm64 --arch x86_64` inside your local repository clone to build universal binary,
-- Adjust the above to create non-universal binary with different configuration (debug / release).
+- Use `swift build -c release --arch arm64 --arch x86_64` inside your local repository clone to build universal binary in release configuration,
 
 ### Running
 *WIP*
