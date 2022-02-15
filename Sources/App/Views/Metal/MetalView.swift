@@ -27,13 +27,15 @@ struct MetalView: NSViewRepresentable {
         
         metalView.framebufferOnly = true
         metalView.enableSetNeedsDisplay = false
+        metalView.sampleCount = data.sampleCount
         metalView.preferredFramesPerSecond = data.targetFPS
+        metalView.colorPixelFormat = .bgra8Unorm_srgb
         
         let W = Int(data.width / 2.0)
         let H = Int(data.height)
         metalView.setFrameSize(NSSize(width: W, height: H))
         metalView.drawableSize = CGSize(width: W, height: H)
-        metalView.clearColor = MTLClearColorMake(0.117, 0.117, 0.117, 1.0)
+        metalView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
         
         return metalView
     }

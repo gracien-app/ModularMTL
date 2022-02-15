@@ -10,5 +10,5 @@ import MetalKit
 
 protocol Renderer {
     var device: MTLDevice { get set }
-    func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer)
+    func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer, _ viewRPD: MTLRenderPassDescriptor)
 }

@@ -45,7 +45,10 @@ class Coordinator: NSObject, MTKViewDelegate {
             fatalError("[Drawing] Error creating MTLCommandBuffer")
         }
         
-        renderer?.draw(with: device, commandBuffer)
+        renderer?.draw(with: device, commandBuffer, view.currentRenderPassDescriptor!)
+        
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}

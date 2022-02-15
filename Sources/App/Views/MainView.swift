@@ -14,6 +14,9 @@ struct MainView: View {
     
     var body: some View {
         ZStack {
+            Color.black
+                .ignoresSafeArea()
+            
             HStack(alignment: .center) {
                 MetalView()
                     .frame(maxWidth: .infinity)

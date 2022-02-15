@@ -1,5 +1,5 @@
 //
-//  PointsBuffer.swift
+//  ManagedBuffer.swift
 //  
 //
 //  Created by Gracjan J on 14/02/2022.
@@ -8,18 +8,22 @@
 import Foundation
 import Metal
 
-enum BufferStatus {
-    case valid
-    case tooSmall
-    case tooBig
-    case invalid
+extension ManagedBuffer {
+    enum BufferStatus {
+        case valid
+        case tooSmall
+        case tooBig
+        case invalid
+    }
 }
 
-class PointsBuffer<Element> {
+class ManagedBuffer<Element> {
+    
     private var device: MTLDevice
     private var buffer: MTLBuffer
     private var status: BufferStatus
     private var lastCount: UInt!
+    private var minimalCapacity: UInt
     
     private var bufferElementCount: UInt {
         let logicalLength = buffer.length
@@ -28,22 +32,29 @@ class PointsBuffer<Element> {
         return UInt(logicalLength / elementLogicalLength)
     }
     
+    public var isValid: Bool {
+        return status == .valid ? true : false
+    }
+    
     public func contents() -> MTLBuffer {
         return buffer
     }
     
-    public init(with device: MTLDevice, size: UInt) {
+    public init(with device: MTLDevice, count: UInt, minimum minCap: UInt) {
         self.device = device
         
-        let countAdjusted = size < 1000 ? 1000 : size
+        let minimum = minCap / 2
+        
+        let countAdjusted = count < minimum ? minimum : count
         let logicalSize = Int(countAdjusted) * MemoryLayout<Element>.stride
         
         guard let buffer = device.makeBuffer(length: logicalSize, options: .storageModePrivate) else {
-            fatalError("[PointsBuffer] Error creating buffer of logical size \(logicalSize)")
+            fatalError("[PointsBuffer] Error creating buffer with logical size of \(logicalSize) bytes.")
         }
         
         self.buffer = buffer
         self.status = .invalid
+        self.minimalCapacity = minimum
     }
     
     public func updateStatus(points count: UInt) {
@@ -56,7 +67,7 @@ class PointsBuffer<Element> {
             }
             else {
                 let tempReducedSize = bufferElementCount / 4
-                if tempReducedSize >= 1000 && count < tempReducedSize {
+                if tempReducedSize >= self.minimalCapacity && count < tempReducedSize {
                     status = .tooBig
                 }
                 else {
