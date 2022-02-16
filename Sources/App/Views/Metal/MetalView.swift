@@ -20,7 +20,7 @@ struct MetalView: NSViewRepresentable {
     func updateNSView(_ nsView: MTKView, context: NSViewRepresentableContext<MetalView>) {}
     
     func makeNSView(context: NSViewRepresentableContext<MetalView>) -> MTKView {
-        let metalView = MTKView()
+        let metalView = CustomMTKView()
         
         metalView.delegate = context.coordinator
         metalView.device = context.coordinator.device
@@ -35,6 +35,7 @@ struct MetalView: NSViewRepresentable {
         let H = Int(data.height)
         metalView.setFrameSize(NSSize(width: W, height: H))
         metalView.drawableSize = CGSize(width: W, height: H)
+   
         metalView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
         
         return metalView

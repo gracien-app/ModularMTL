@@ -40,7 +40,7 @@ class ManagedBuffer<Element> {
         return buffer
     }
     
-    public init(with device: MTLDevice, count: UInt, minimum minCap: UInt) {
+    public init(with device: MTLDevice, count: UInt, minimum minCap: UInt, label: String) {
         self.device = device
         
         let minimum = minCap / 2
@@ -53,6 +53,7 @@ class ManagedBuffer<Element> {
         }
         
         self.buffer = buffer
+        self.buffer.label = label
         self.status = .invalid
         self.minimalCapacity = minimum
     }

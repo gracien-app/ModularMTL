@@ -13,7 +13,8 @@ public class UIDataObject: ObservableObject {
     
     @Published public var frametime: Double = 0
     @Published public var pointsCount: UInt = 100
-    @Published public var multiplier: Float = 168
+    @Published public var multiplier: Float = 2
+    @Published public var animation: Bool = false
    
     var resolution: (CGFloat, CGFloat) = (1300, 650)
     
@@ -24,7 +25,7 @@ public class UIDataObject: ObservableObject {
     public var width: CGFloat {
         return resolution.0
     }
-    
+
     public var height: CGFloat {
         return resolution.1
     }

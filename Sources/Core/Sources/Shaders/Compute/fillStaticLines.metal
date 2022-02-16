@@ -11,7 +11,7 @@ using namespace metal;
 
 kernel void fillStaticLines(constant uint &pointsCount       [[buffer(0)]],
                             constant uint &multiplier        [[buffer(1)]],
-                            device simd_float2 *pointsBuffer [[buffer(2)]],
+                            device float2 *pointsBuffer      [[buffer(2)]],
                             device simd_float4 *linesBuffer  [[buffer(3)]],
                             const uint index                 [[thread_position_in_grid]]) {
     

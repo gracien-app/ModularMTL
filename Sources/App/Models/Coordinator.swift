@@ -37,6 +37,8 @@ class Coordinator: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
+        handleKeyboardInput()
+        
         guard let drawable = view.currentDrawable else {
             return
         }
@@ -49,6 +51,29 @@ class Coordinator: NSObject, MTKViewDelegate {
         
         commandBuffer.present(drawable)
         commandBuffer.commit()
+    }
+    
+    func handleKeyboardInput() {
+        if Keyboard.IsKeyPressed(.upArrow) {
+            dataObject.pointsCount += 1
+        }
+        else if Keyboard.IsKeyPressed(.downArrow) {
+            if dataObject.pointsCount > 1 {
+                dataObject.pointsCount -= 1
+            }
+        }
+        
+        if Keyboard.IsKeyPressed(.leftArrow) {
+            if (dataObject.multiplier - 0.1) >= 0.0 {
+                dataObject.multiplier -= 0.1
+            }
+            else {
+                dataObject.multiplier = 0.0
+            }
+        }
+        else if Keyboard.IsKeyPressed(.rightArrow) {
+            dataObject.multiplier += 0.1
+        }
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}

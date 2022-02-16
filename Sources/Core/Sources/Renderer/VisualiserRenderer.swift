@@ -25,6 +25,20 @@ public class VisualiserRenderer: Renderer {
     
     let renderPassPSO: MTLRenderPipelineState
     
+    private var M: Float!
+    private var linesValid: Bool = true
+    var currentMultiplier: Float {
+        get {
+            return M
+        }
+        set {
+            if newValue != M {
+                linesValid = false
+            }
+            M = newValue
+        }
+    }
+    
     public init(with device: MTLDevice, _ data: UIDataObject) {
         self.device = device
         self.data = data
@@ -43,8 +57,8 @@ public class VisualiserRenderer: Renderer {
         self.renderTargetTexture = texture
         
         let minimum = UInt(500)
-        self.pointsBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimum)
-        self.linesBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimum)
+        self.pointsBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimum, label: "PointsBuffer")
+        self.linesBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimum, label: "LinesBuffer")
         
         do {
             self.fillBufferPSO = try device.makeComputePipelineState(function: library.getFunction(name: "fillPointsBuffer")!)
@@ -61,6 +75,8 @@ public class VisualiserRenderer: Renderer {
             print(error)
             fatalError("[Metal] Error creating PSO.")
         }
+        
+        self.currentMultiplier = data.multiplier
     }
     
     private func encodeFillBuffer(target buffer: MTLBuffer,
@@ -86,9 +102,11 @@ public class VisualiserRenderer: Renderer {
                                        to linesBuffer: MTLBuffer,
                                        commandBuffer: MTLCommandBuffer,
                                        elementCount: simd_uint1,
+                                       multiplier: simd_float1,
                                        animated: Bool) {
        
         var pointsCount = elementCount
+        var multiplier = multiplier
         let fillBufferEncoder = commandBuffer.makeComputeCommandEncoder()
         fillBufferEncoder?.setBytes(&pointsCount, length: MemoryLayout<simd_uint1>.stride, index: 0)
         fillBufferEncoder?.setBuffer(pointsBuffer, offset: 0, index: 2)
@@ -97,11 +115,11 @@ public class VisualiserRenderer: Renderer {
        
         if animated {
             fillBufferEncoder?.setComputePipelineState(self.fillAnimatedPSO)
-            fillBufferEncoder?.setBytes(&data.multiplier, length: MemoryLayout<simd_float1>.stride, index: 1)
+            fillBufferEncoder?.setBytes(&multiplier, length: MemoryLayout<simd_float1>.stride, index: 1)
         }
         else {
             fillBufferEncoder?.setComputePipelineState(self.fillStaticPSO)
-            var integerM = simd_uint1(data.multiplier.rounded())
+            var integerM = simd_uint1(multiplier.rounded())
             fillBufferEncoder?.setBytes(&integerM, length: MemoryLayout<simd_uint1>.stride, index: 1)
         }
         
@@ -116,18 +134,24 @@ public class VisualiserRenderer: Renderer {
     
     public func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer, _ viewRPD: MTLRenderPassDescriptor) {
         let pointsCount = simd_uint1(data.pointsCount)
+        self.currentMultiplier = data.multiplier
         pointsBuffer.updateStatus(points: UInt(pointsCount))
+        linesBuffer.updateStatus(points: UInt(pointsCount))
         
         if pointsBuffer.isValid == false {
             encodeFillBuffer(target: self.pointsBuffer.contents(),
                              commandBuffer: commandBuffer,
                              elementCount: pointsCount)
-            
+            self.linesValid = false
+        }
+        
+        if self.linesValid == false {
             encodeFillLinesBuffer(from: pointsBuffer.contents(),
                                   to: linesBuffer.contents(),
                                   commandBuffer: commandBuffer,
                                   elementCount: pointsCount,
-                                  animated: false)
+                                  multiplier: self.currentMultiplier,
+                                  animated: true)
         }
         
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: viewRPD)!
@@ -136,6 +160,10 @@ public class VisualiserRenderer: Renderer {
         renderEncoder.setVertexBuffer(linesBuffer.contents(), offset: 0, index: 0)
         renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(pointsCount*2))
         renderEncoder.endEncoding()
+        
+        if data.animation == true {
+            data.multiplier += 0.01
+        }
         
         return
     }

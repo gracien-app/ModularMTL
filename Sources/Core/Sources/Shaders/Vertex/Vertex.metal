@@ -33,7 +33,7 @@ vertex Vertex linesVertexFunction(constant simd_float4 *linesBuffer [[buffer(0)]
     }
     else {
         vertexPosition.xy = linesBuffer[lineIndex].zw;
-        vertexColour = float4(float3(0.2), 1.0);
+        vertexColour = float4(float3(0.1), 1.0);
     }
     
     return {

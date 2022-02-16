@@ -28,6 +28,16 @@ struct UserInterfaceView: View {
                 .font(.system(size: 30))
                 .fontWeight(.ultraLight)
                 .tracking(5)
+            
+            Toggle(isOn: $data.animation, label: {
+                Text("Animation")
+                    .font(.system(size: 15))
+                    .fontWeight(.ultraLight)
+                    .tracking(5)
+                
+            })
+                .toggleStyle(.switch)
+                .toggleStyle(SwitchToggleStyle(tint: .blue))
         }
     }
 }

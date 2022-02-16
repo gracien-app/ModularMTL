@@ -8,7 +8,6 @@
 #include <metal_stdlib>
 using namespace metal;
 
-
 kernel void fillPointsBuffer(constant uint &pointsCount          [[buffer(0)]],
                                constant float &circleRadius       [[buffer(1)]],
                                device simd_float2 *pointsBuffer   [[buffer(2)]],
