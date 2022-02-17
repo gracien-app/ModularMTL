@@ -17,9 +17,10 @@ struct MainView: View {
             Color.black
                 .ignoresSafeArea()
             
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: 0) {
                 MetalView()
                     .frame(maxWidth: .infinity)
+                    .ignoresSafeArea(.all, edges: .top)
                 UserInterfaceView()
                     .frame(maxWidth: .infinity)
             }

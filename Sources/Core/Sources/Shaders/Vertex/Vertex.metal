@@ -9,8 +9,8 @@
 #include "../Header.metal"
 using namespace metal;
 
-vertex Vertex pointVertexFunction(constant simd_float2 *vertices [[buffer(0)]],
-                             uint index [[vertex_id]]) {
+vertex Vertex pointVertexFunction(constant  float2  *vertices  [[buffer(0)]],
+                                  const     uint    index      [[vertex_id]]) {
 
     return {
         .position = float4(vertices[index], 1.0, 1.0),
@@ -19,8 +19,8 @@ vertex Vertex pointVertexFunction(constant simd_float2 *vertices [[buffer(0)]],
     };
 }
 
-vertex Vertex linesVertexFunction(constant simd_float4 *linesBuffer [[buffer(0)]],
-                                  uint index [[vertex_id]]) {
+vertex Vertex linesVertexFunction(constant  float4  *linesBuffer  [[buffer(0)]],
+                                  const     uint    index         [[vertex_id]]) {
     
     int lineIndex = index / 2;
     int indexRemainder = index % 2;
@@ -38,7 +38,7 @@ vertex Vertex linesVertexFunction(constant simd_float4 *linesBuffer [[buffer(0)]
     
     return {
         .position = vertexPosition,
-        .pointSize = 1.0,
+        .pointSize = 0.1,
         .colour = vertexColour
     };
 }

@@ -16,11 +16,12 @@ public class UIDataObject: ObservableObject {
     @Published public var multiplier: Float = 2
     @Published public var animation: Bool = false
    
-    var resolution: (CGFloat, CGFloat) = (1300, 650)
+    var resolution: (CGFloat, CGFloat) = (1356, 650)
     
-    public var targetFPS: Int = 60
-    public var sampleCount: Int = 4
+    public let targetFPS: Int = 60
+    public let sampleCount: Int = 4
     public var circleRadius: Float = 0.9
+    public let animationStep: Float = 0.005
     
     public var width: CGFloat {
         return resolution.0

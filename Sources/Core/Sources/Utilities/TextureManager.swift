@@ -21,7 +21,6 @@ public enum TextureManager {
                                   format: MTLPixelFormat,
                                   sizeWH: (Int, Int),
                                   type: TextureType) -> MTLTexture? {
-        
         let texDescriptor = MTLTextureDescriptor()
         texDescriptor.width = sizeWH.0
         texDescriptor.height = sizeWH.1
@@ -44,4 +43,5 @@ public enum TextureManager {
         }
         return nil
     }
+    
 }
