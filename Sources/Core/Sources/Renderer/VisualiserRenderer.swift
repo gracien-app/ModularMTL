@@ -41,7 +41,7 @@ public class VisualiserRenderer: Renderer {
         self.library = Library(with: device,
                                functions: ["computePointsFunction", "computeLinesFunction",
                                            "fragmentFunction",
-                                           "pointsVertexFunction", "linesVertexFunction"])
+                                           "linesVertexFunction"])
         
         let minimumSize: UInt = 200
         self.pointsBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimumSize, label: "PointsBuffer")

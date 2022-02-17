@@ -47,6 +47,17 @@ class Coordinator: NSObject, MTKViewDelegate {
             fatalError("[Drawing] Error creating MTLCommandBuffer")
         }
         
+        commandBuffer.addCompletedHandler { cmdBuffer in
+            let start = cmdBuffer.gpuStartTime
+            let end = cmdBuffer.gpuEndTime
+            let sFrametime = end - start
+            let msFrametime = sFrametime * 1000
+            
+            DispatchQueue.main.async {
+                self.dataObject.frametime = msFrametime
+            }
+        }
+        
         renderer?.draw(with: device, commandBuffer, view.currentRenderPassDescriptor!)
         
         commandBuffer.present(drawable)

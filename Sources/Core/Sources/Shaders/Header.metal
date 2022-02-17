@@ -8,8 +8,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
+/// Vertex structure, uses [[sample_perspective]] to achieve custom interpolation of colour.
 struct Vertex {
     float4 position [[position]];
-    float pointSize [[point_size]];
     float4 colour [[sample_perspective]];
 };

@@ -13,31 +13,16 @@ struct UserInterfaceView: View {
     @EnvironmentObject var data: UIDataObject
     
     var body: some View {
-        VStack(alignment: .center, spacing: 20) {
-            Text("MODULAR")
-                .font(.system(size: 40))
-                .fontWeight(.ultraLight)
-                .tracking(40)
-            
-            Text("N: \(data.pointsCount)")
-                .font(.system(size: 30))
-                .fontWeight(.ultraLight)
-                .tracking(5)
-            
-            Text("M: \(String(format: "%.2f", data.multiplier))")
-                .font(.system(size: 30))
-                .fontWeight(.ultraLight)
-                .tracking(5)
-            
-            Toggle(isOn: $data.animation, label: {
-                Text("Animation")
-                    .font(.system(size: 15))
-                    .fontWeight(.ultraLight)
-                    .tracking(5)
-                
-            })
-                .toggleStyle(.switch)
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
+        ZStack {
+            VStack(alignment: .leading, spacing: 25) {
+                MenuTextView(label: "MULTIPLY", String(format: "%.2f", data.multiplier))
+                MenuTextView(label: "OFFSET", String(format: "%.3f", data.animationStep))
+                MenuTextView(label: "DISPERSAL", String(format: "%u", data.pointsCount))
+                MenuTextView(label: "U")
+                MenuTextView(label: "LATENCY", data.frametimeInMs)
+                MenuTextView(label: "ANIMATE", nil, dataBinding: $data.animation)
+                MenuTextView(label: "RADIUS", String(format: "%.2f", data.circleRadius))
+            }
         }
     }
 }

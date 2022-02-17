@@ -17,13 +17,13 @@ struct MainView: View {
             Color.black
                 .ignoresSafeArea()
             
-            HStack(alignment: .center, spacing: 0) {
+            HStack(alignment: .center, spacing: 5) {
                 MetalView()
                     .frame(maxWidth: .infinity)
-                    .ignoresSafeArea(.all, edges: .top)
                 UserInterfaceView()
                     .frame(maxWidth: .infinity)
             }
+            .ignoresSafeArea(.all, edges: .top)
         }
         .environmentObject(data)
         .frame(width: data.width, height: data.height, alignment: .center)
