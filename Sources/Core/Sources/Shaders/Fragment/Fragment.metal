@@ -13,3 +13,12 @@ using namespace metal;
 fragment float4 fragmentFunction(Vertex v [[stage_in]]) {
     return v.colour;
 };
+
+fragment float4 quadFragmentFunction(QuadVertex v [[stage_in]],
+                                     texture2d<float, access::sample> inputTexture [[texture(0)]]) {
+    
+    constexpr sampler textureSampler;
+    float4 color = inputTexture.sample(textureSampler, v.uv);
+
+    return color;
+}

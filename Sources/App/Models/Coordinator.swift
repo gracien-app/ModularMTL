@@ -16,6 +16,9 @@ class Coordinator: NSObject, MTKViewDelegate {
     
     var parent: MetalView
     
+    let quadVertexBuffer: MTLBuffer
+    let quadRenderPSO: MTLRenderPipelineState
+    
     var dataObject: UIDataObject
     var renderer: VisualiserRenderer?
     
@@ -33,6 +36,27 @@ class Coordinator: NSObject, MTKViewDelegate {
         self.queue = queue
         
         renderer = VisualiserRenderer(with: self.device, self.dataObject)
+        
+        let quadVertexData: [simd_float4] = [
+            .init(x: -1.0, y: 1.0, z: 0.0, w: 0.0),
+            .init(x: -1.0, y: -1.0, z: 0.0, w: 1.0),
+            .init(x: 1.0, y: -1.0, z: 1.0, w: 1.0),
+            .init(x: -1.0, y: 1.0, z: 0.0, w: 0.0),
+            .init(x: 1.0, y: -1.0, z: 1.0, w: 1.0),
+            .init(x: 1.0, y: 1.0, z: 1.0, w: 0.0),
+        ]
+        
+        self.quadVertexBuffer = device.makeBuffer(bytes: quadVertexData,
+                                              length: MemoryLayout<simd_float4>.stride * quadVertexData.count)!
+        
+        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
+        renderPipelineDescriptor.vertexFunction = renderer?.getFunction("quadVertexFunction")
+        renderPipelineDescriptor.fragmentFunction = renderer?.getFunction("quadFragmentFunction")
+        renderPipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm_srgb
+        renderPipelineDescriptor.sampleCount = data.sampleCount
+        
+        self.quadRenderPSO = try! device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
+        
         super.init()
     }
     
@@ -58,7 +82,16 @@ class Coordinator: NSObject, MTKViewDelegate {
             }
         }
         
-        renderer?.draw(with: device, commandBuffer, view.currentRenderPassDescriptor!)
+        renderer?.draw(with: device, commandBuffer)
+        
+        let renderDesc = view.currentRenderPassDescriptor!
+        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderDesc)!
+        
+        renderEncoder.setRenderPipelineState(self.quadRenderPSO)
+        renderEncoder.setVertexBuffer(self.quadVertexBuffer, offset: 0, index: 0)
+        renderEncoder.setFragmentTexture(renderer?.getDrawable(), index: 0)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        renderEncoder.endEncoding()
         
         commandBuffer.present(drawable)
         commandBuffer.commit()
@@ -69,18 +102,13 @@ class Coordinator: NSObject, MTKViewDelegate {
             dataObject.pointsCount += 1
         }
         else if Keyboard.IsKeyPressed(.downArrow) {
-            if dataObject.pointsCount > 1 {
+            if dataObject.pointsCount > 2 {
                 dataObject.pointsCount -= 1
             }
         }
         
         if Keyboard.IsKeyPressed(.leftArrow) {
-            if (dataObject.multiplier - 0.1) >= 0.0 {
-                dataObject.multiplier -= 0.1
-            }
-            else {
-                dataObject.multiplier = 0.0
-            }
+            dataObject.multiplier -= 0.1
         }
         else if Keyboard.IsKeyPressed(.rightArrow) {
             dataObject.multiplier += 0.1

@@ -26,19 +26,29 @@ vertex Vertex linesVertexFunction(constant  float4  *linesBuffer  [[buffer(0)]],
     int lineIndex = index / 2;
     int indexRemainder = index % 2;
     
-    float4 vertexPosition = float4(0.0, 0.0, 1.0, 1.0);
-    float4 vertexColour = float4(0.235, 0.435, 0.79, 1.0) / 2.2;
+    float4 vertexPosition = float4(0.0, 0.0, 0.99, 1.0);
+    float4 vertexColour = float4(0.235, 0.435, 0.79, 1.0);
+    vertexColour.xyz /= 2.2;
     
     if (indexRemainder == 0) {
         vertexPosition.xy = linesBuffer[lineIndex].xy;
     }
     else {
         vertexPosition.xy = linesBuffer[lineIndex].zw;
+        vertexPosition.z = 1.0;
         vertexColour = float4(float3(0.001), 1.0);
     }
     
     return {
         .position = vertexPosition,
         .colour = vertexColour
+    };
+}
+
+vertex QuadVertex quadVertexFunction(constant float4 *vertexBuffer [[buffer(0)]],
+                                     const     uint    index       [[vertex_id]]) {
+    return {
+        .position = float4(vertexBuffer[index].xy, 0.0, 1.0),
+        .uv = float2(vertexBuffer[index].zw)
     };
 }

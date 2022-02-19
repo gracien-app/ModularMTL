@@ -26,19 +26,8 @@ struct MenuTextView: View {
     
     var body: some View {
         HStack(alignment: .center , spacing: 0) {
-            ZStack {
-                Text(firstChar)
-                    .font(.system(size: self.size))
-                    .fontWeight(.thin)
-                    .tracking(self.tracking)
-                    .foregroundColor(.white)
-                Text(firstChar)
-                    .font(.system(size: self.size))
-                    .fontWeight(.bold)
-                    .tracking(self.tracking)
-                    .foregroundStyle(.blue)
-                    .blur(radius: 20.0)
-            }
+            
+            firstCharacterBody
             
             Text(remainder)
                 .font(.system(size: self.size))
@@ -63,6 +52,22 @@ struct MenuTextView: View {
             
             Spacer()
                 
+        }
+    }
+    
+    var firstCharacterBody: some View {
+        ZStack {
+            Text(firstChar)
+                .font(.system(size: self.size))
+                .fontWeight(.thin)
+                .tracking(self.tracking)
+                .foregroundColor(.white)
+            Text(firstChar)
+                .font(.system(size: self.size))
+                .fontWeight(.bold)
+                .tracking(self.tracking)
+                .foregroundStyle(.blue)
+                .blur(radius: 20.0)
         }
     }
 }

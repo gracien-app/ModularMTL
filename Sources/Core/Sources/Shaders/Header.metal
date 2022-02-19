@@ -13,3 +13,8 @@ struct Vertex {
     float4 position [[position]];
     float4 colour [[sample_perspective]];
 };
+
+struct QuadVertex {
+    float4 position [[position]];
+    float2 uv;
+};

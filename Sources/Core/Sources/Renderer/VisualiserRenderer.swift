@@ -17,9 +17,12 @@ public class VisualiserRenderer: Renderer {
     var pointsBuffer: ManagedBuffer<simd_float2>
     var linesBuffer: ManagedBuffer<simd_float4>
     
-    let computePointsPSO: MTLComputePipelineState
+    let offscreenRenderTexture: MTLTexture
+    let offscreenRenderPD: MTLRenderPassDescriptor
+    let offscreenRenderPSO: MTLRenderPipelineState
+    
     let computeLinesPSO: MTLComputePipelineState
-    let renderPassPSO: MTLRenderPipelineState
+    let computePointsPSO: MTLComputePipelineState
     
     private var M: Float!
     private var linesValid: Bool = true
@@ -35,13 +38,24 @@ public class VisualiserRenderer: Renderer {
         }
     }
     
+    public func getDrawable() -> MTLTexture {
+        return self.offscreenRenderTexture
+    }
+    
+    public func getFunction(_ name: String) -> MTLFunction? {
+        if let function = library.getFunction(name: name) {
+            return function
+        }
+        return nil
+    }
+    
     public init(with device: MTLDevice, _ data: UIDataObject) {
         self.device = device
         self.data = data
         self.library = Library(with: device,
                                functions: ["computePointsFunction", "computeLinesFunction",
-                                           "fragmentFunction",
-                                           "linesVertexFunction"])
+                                           "fragmentFunction", "quadFragmentFunction",
+                                           "linesVertexFunction", "quadVertexFunction"])
         
         let minimumSize: UInt = 200
         self.pointsBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimumSize, label: "PointsBuffer")
@@ -56,15 +70,27 @@ public class VisualiserRenderer: Renderer {
         do {
             computePointsPSO = try device.makeComputePipelineState(function: library.getFunction(name: "computePointsFunction")!)
             computeLinesPSO = try device.makeComputePipelineState(function: library.getFunction(name: "computeLinesFunction")!)
-            renderPassPSO = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
+            offscreenRenderPSO = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
         } catch {
             fatalError("[Metal] Error creating PSO.")
         }
         
+        self.offscreenRenderTexture = TextureManager.getTexture(with: device,
+                                                                      format: .bgra8Unorm_srgb,
+                                                                      sizeWH: (Int(data.width / 2.0 + 28) * 2,
+                                                                               Int(data.height + 28) * 2),
+                                                                      type: .renderTarget)!
+        
+        self.offscreenRenderPD = MTLRenderPassDescriptor()
+        self.offscreenRenderPD.colorAttachments[0].texture = self.offscreenRenderTexture
+        self.offscreenRenderPD.colorAttachments[0].loadAction = .clear
+        self.offscreenRenderPD.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        self.offscreenRenderPD.colorAttachments[0].storeAction = .store
+        
         self.currentMultiplier = data.multiplier
     }
 
-    public func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer, _ viewRPD: MTLRenderPassDescriptor) {
+    public func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer) {
         let pointsCount = simd_uint1(data.pointsCount)
         self.currentMultiplier = data.multiplier
         
@@ -86,9 +112,9 @@ public class VisualiserRenderer: Renderer {
                                   multiplier: self.currentMultiplier)
         }
         
-        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: viewRPD)!
+        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: self.offscreenRenderPD)!
         
-        renderEncoder.setRenderPipelineState(renderPassPSO)
+        renderEncoder.setRenderPipelineState(offscreenRenderPSO)
         renderEncoder.setVertexBuffer(linesBuffer.contents(), offset: 0, index: 0)
         renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(pointsCount*2))
         renderEncoder.endEncoding()

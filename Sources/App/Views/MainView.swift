@@ -19,7 +19,7 @@ struct MainView: View {
             
             HStack(alignment: .center, spacing: 5) {
                 MetalView()
-                    .frame(maxWidth: .infinity)
+                    .frame(width: (data.width / 2.0) + 28, height: data.height+28)
                 UserInterfaceView()
                     .frame(maxWidth: .infinity)
             }

@@ -13,13 +13,13 @@ public class UIDataObject: ObservableObject {
     
     @Published public var frametime: Double = 0
     @Published public var pointsCount: UInt = 200
-    @Published public var multiplier: Float = 1.5
+    @Published public var multiplier: Float = 2
     @Published public var animation: Bool = false
    
-    var resolution: (CGFloat, CGFloat) = (1356, 650)
+    var resolution: (CGFloat, CGFloat) = (1300, 650)
     
     public let targetFPS: Int = 60
-    public let sampleCount: Int = 4
+    public let sampleCount: Int = 1
     public var circleRadius: Float = 0.9
     public let animationStep: Float = 0.005
     
