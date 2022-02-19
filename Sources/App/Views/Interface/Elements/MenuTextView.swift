@@ -64,10 +64,10 @@ struct MenuTextView: View {
                 .foregroundColor(.white)
             Text(firstChar)
                 .font(.system(size: self.size))
-                .fontWeight(.bold)
+                .fontWeight(.heavy)
                 .tracking(self.tracking)
                 .foregroundStyle(.blue)
-                .blur(radius: 20.0)
+                .blur(radius: 30.0)
         }
     }
 }

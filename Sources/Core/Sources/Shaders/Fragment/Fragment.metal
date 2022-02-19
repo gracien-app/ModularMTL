@@ -15,10 +15,19 @@ fragment float4 fragmentFunction(Vertex v [[stage_in]]) {
 };
 
 fragment float4 quadFragmentFunction(QuadVertex v [[stage_in]],
-                                     texture2d<float, access::sample> inputTexture [[texture(0)]]) {
+                                     constant bool &blurEnabled [[buffer(0)]],
+                                     constant float &multiplier [[buffer(1)]],
+                                     texture2d<float, access::sample> inputTexture [[texture(0)]],
+                                     texture2d<float, access::sample> blurTexture [[texture(1)]]) {
     
     constexpr sampler textureSampler;
     float4 color = inputTexture.sample(textureSampler, v.uv);
+    
+    if (blurEnabled == true && color.x == 0.0 && color.y == 0.0 && color.z == 0.0) {
+        color = blurTexture.sample(textureSampler, v.uv) * (0.45 + 0.05 * sin(multiplier * 10));
+
+        color.xyz / 2.2;
+    }
 
     return color;
 }

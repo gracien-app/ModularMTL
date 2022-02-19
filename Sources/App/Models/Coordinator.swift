@@ -90,6 +90,9 @@ class Coordinator: NSObject, MTKViewDelegate {
         renderEncoder.setRenderPipelineState(self.quadRenderPSO)
         renderEncoder.setVertexBuffer(self.quadVertexBuffer, offset: 0, index: 0)
         renderEncoder.setFragmentTexture(renderer?.getDrawable(), index: 0)
+        renderEncoder.setFragmentTexture(renderer?.getBlurTexture(), index: 1)
+        renderEncoder.setFragmentBytes(&dataObject.blur, length: MemoryLayout<uint8>.stride, index: 0)
+        renderEncoder.setFragmentBytes(&dataObject.multiplier, length: MemoryLayout<simd_float1>.stride, index: 1)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
         

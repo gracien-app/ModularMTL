@@ -29,7 +29,7 @@ public enum TextureManager {
         
         switch type {
             case .renderTarget:
-                texDescriptor.usage = [.renderTarget, .shaderRead]
+                texDescriptor.usage = [.renderTarget, .shaderRead, .shaderWrite]
                 texDescriptor.storageMode = .private
             case .readWrite:
                 texDescriptor.usage = [.shaderRead, .shaderWrite]

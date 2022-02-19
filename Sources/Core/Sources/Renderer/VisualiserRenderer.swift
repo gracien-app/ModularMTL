@@ -7,6 +7,7 @@
 
 import Foundation
 import MetalKit
+import MetalPerformanceShaders
 
 public class VisualiserRenderer: Renderer {
     
@@ -17,7 +18,12 @@ public class VisualiserRenderer: Renderer {
     var pointsBuffer: ManagedBuffer<simd_float2>
     var linesBuffer: ManagedBuffer<simd_float4>
     
-    let offscreenRenderTexture: MTLTexture
+    var offscreenRenderTexture: MTLTexture
+    
+    var blurTexture: MTLTexture
+    var blurKernel: MPSUnaryImageKernel
+    
+    
     let offscreenRenderPD: MTLRenderPassDescriptor
     let offscreenRenderPSO: MTLRenderPipelineState
     
@@ -34,12 +40,19 @@ public class VisualiserRenderer: Renderer {
             if newValue != M {
                 linesValid = false
             }
+            else {
+                linesValid = true
+            }
             M = newValue
         }
     }
     
     public func getDrawable() -> MTLTexture {
         return self.offscreenRenderTexture
+    }
+    
+    public func getBlurTexture() -> MTLTexture {
+        return self.blurTexture
     }
     
     public func getFunction(_ name: String) -> MTLFunction? {
@@ -81,11 +94,19 @@ public class VisualiserRenderer: Renderer {
                                                                                Int(data.height + 28) * 2),
                                                                       type: .renderTarget)!
         
+        self.blurTexture = TextureManager.getTexture(with: device,
+                                                     format: .bgra8Unorm_srgb,
+                                                     sizeWH: (Int(data.width / 2.0 + 28) * 2,
+                                                              Int(data.height + 28) * 2),
+                                                     type: .readWrite)!
+        
         self.offscreenRenderPD = MTLRenderPassDescriptor()
         self.offscreenRenderPD.colorAttachments[0].texture = self.offscreenRenderTexture
         self.offscreenRenderPD.colorAttachments[0].loadAction = .clear
         self.offscreenRenderPD.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         self.offscreenRenderPD.colorAttachments[0].storeAction = .store
+        
+        self.blurKernel = MPSImageGaussianBlur(device: device, sigma: 55)
         
         self.currentMultiplier = data.multiplier
     }
@@ -110,14 +131,19 @@ public class VisualiserRenderer: Renderer {
                                   commandBuffer: commandBuffer,
                                   elementCount: pointsCount,
                                   multiplier: self.currentMultiplier)
+            
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: self.offscreenRenderPD)!
+            renderEncoder.setRenderPipelineState(offscreenRenderPSO)
+            renderEncoder.setVertexBuffer(linesBuffer.contents(), offset: 0, index: 0)
+            renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(pointsCount*2))
+            renderEncoder.endEncoding()
+            
+            if data.blur == true {
+                blurKernel.encode(commandBuffer: commandBuffer,
+                                  sourceTexture: offscreenRenderTexture,
+                                  destinationTexture: blurTexture)
+            }
         }
-        
-        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: self.offscreenRenderPD)!
-        
-        renderEncoder.setRenderPipelineState(offscreenRenderPSO)
-        renderEncoder.setVertexBuffer(linesBuffer.contents(), offset: 0, index: 0)
-        renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(pointsCount*2))
-        renderEncoder.endEncoding()
         
         if data.animation == true {
             data.multiplier += data.animationStep
