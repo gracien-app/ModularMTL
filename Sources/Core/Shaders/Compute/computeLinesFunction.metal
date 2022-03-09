@@ -30,7 +30,6 @@ kernel void computeLinesFunction(device    float2  *pointsBuffer  [[buffer(0)]],
     
     float rotationOffset = M_PI_F;
     float angle = (2 * M_PI_F) / float(pointsCount);
-    
     float2 toPoint = float2(0.0);
     toPoint.x = radius * cos(rotationOffset - angle * toIndex);
     toPoint.y = radius * sin(rotationOffset - angle * toIndex);

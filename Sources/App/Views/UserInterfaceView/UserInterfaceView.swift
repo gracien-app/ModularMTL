@@ -1,16 +1,9 @@
-//
-//  UserInterfaceView.swift
-//  
-//
-//  Created by Gracjan J on 13/02/2022.
-//
-
 import SwiftUI
 import ModularMTLCore
 
 struct UserInterfaceView: View {
     
-    @EnvironmentObject var data: UIDataObject
+    @EnvironmentObject var data: RendererObservableData
     
     var body: some View {
         ZStack {
@@ -21,7 +14,9 @@ struct UserInterfaceView: View {
                 MenuTextView(label: "U")
                 MenuTextView(label: "LATENCY", data.frametimeInMs)
                 MenuTextView(label: "ANIMATE", nil, dataBinding: $data.animation)
-                MenuTextView(label: "RADIATE", nil, dataBinding: $data.blur)
+                
+                MenuTextView(label: "RADIATE", nil, dataBinding: $data.blur,
+                             disabled: data.status == .Limited ? true : false)
             }
         }
     }

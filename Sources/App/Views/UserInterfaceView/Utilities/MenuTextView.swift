@@ -1,10 +1,3 @@
-//
-//  MenuTextView.swift
-//  
-//
-//  Created by Gracjan J on 17/02/2022.
-//
-
 import SwiftUI
 
 struct MenuTextView: View {
@@ -12,16 +5,19 @@ struct MenuTextView: View {
     var remainder: String
     var dataString: String?
     var dataBinding: Binding<Bool>?
+    var enabled: Binding<Bool>?
+    let disabled: Bool
     
     let size: CGFloat = 32
     let tracking: CGFloat = 25
     
-    init(label: String, _ dataString: String? = nil, dataBinding: Binding<Bool>? = nil) {
+    init(label: String, _ dataString: String? = nil, dataBinding: Binding<Bool>? = nil, disabled: Bool = false) {
         var tempLabel = label
         firstChar = String(tempLabel.removeFirst())
         remainder = tempLabel
         self.dataString = dataString
         self.dataBinding = dataBinding
+        self.disabled = disabled
     }
     
     var body: some View {
@@ -48,6 +44,7 @@ struct MenuTextView: View {
                                                                green: 0.392,
                                                                blue: 0.51,
                                                                opacity: 0.1)))
+                    .disabled(self.disabled)
             }
             
             Spacer()

@@ -2,7 +2,7 @@
   "buildNumber" : 1,
   "bundleIdentifier" : "com.gracien.ModularMTL",
   "category" : "public.app-category.graphics-design",
-  "minOSVersion" : "11.0",
+  "minOSVersion" : "12.0",
   "target" : "ModularMTL",
   "versionString" : "1.0.0"
 }

@@ -45,10 +45,12 @@ vertex Vertex linesVertexFunction(constant  float4  *linesBuffer  [[buffer(0)]],
     };
 }
 
-vertex QuadVertex quadVertexFunction(constant float4 *vertexBuffer [[buffer(0)]],
-                                     const     uint    index       [[vertex_id]]) {
+vertex QuadVertex quadVertexFunction(const uint index [[vertex_id]]) {
+    
+    float2 vertexPosition = quadVertices[index];
+    
     return {
-        .position = float4(vertexBuffer[index].xy, 0.0, 1.0),
-        .uv = float2(vertexBuffer[index].zw)
+        .position = float4(vertexPosition, 0.0, 1.0),
+        .uv = vertexPosition * float2(0.5, -0.5) + 0.5
     };
 }

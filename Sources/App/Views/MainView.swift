@@ -10,7 +10,7 @@ import ModularMTLCore
 
 struct MainView: View {
     
-    @StateObject var data = UIDataObject()
+    @StateObject var data = RendererObservableData()
     
     var body: some View {
         ZStack {
@@ -24,6 +24,16 @@ struct MainView: View {
                     .frame(maxWidth: .infinity)
             }
             .ignoresSafeArea(.all, edges: .top)
+            .alert("ModularMTL", isPresented: $data.showAlert, actions: {
+                Button("Confirm") {
+                    if data.status == .MetalUnsupported {
+                        exit(1)
+                    }
+                }
+            }, message: {
+                Text(data.getStatusMessage())
+            })
+            
         }
         .environmentObject(data)
         .frame(width: data.width, height: data.height, alignment: .center)

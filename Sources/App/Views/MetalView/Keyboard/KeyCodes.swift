@@ -1,6 +1,6 @@
 // Source:
-// Slightly modified keyboard
-// input handling from https://github.com/twohyjr/Metal-Game-Engine-Tutorial
+// Slightly modified keyboard input handling from
+// https://github.com/twohyjr/Metal-Game-Engine-Tutorial
 //
 
 import Foundation

@@ -11,19 +11,11 @@ let package = Package(
     ],
     
     products: [
-      .executable(
-        name: "ModularMTL",
-        targets: ["ModularMTL"])
-    ],
-    
-    dependencies: [
-        .package(name: "ModularMTLCore", path: "Sources/Core")
+        .executable( name: "ModularMTL", targets: ["ModularMTL"])
     ],
     
     targets: [
-        .executableTarget(
-            name: "ModularMTL",
-            dependencies: ["ModularMTLCore"],
-            path: "Sources/App")
+        .target(name: "ModularMTLCore", path: "Sources/Core"),
+        .executableTarget(name: "ModularMTL", dependencies: ["ModularMTLCore"], path: "Sources/App")
     ]
 )

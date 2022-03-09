@@ -1,10 +1,3 @@
-//
-//  TextureManager.swift
-//  
-//
-//  Created by Gracjan J on 14/02/2022.
-//
-
 import Foundation
 import Metal
 
@@ -39,10 +32,11 @@ public enum TextureManager {
                 texDescriptor.usage = [.shaderRead]
         }
         
-        if let texture = device.makeTexture(descriptor: texDescriptor) {
-            return texture
+        guard let texture = device.makeTexture(descriptor: texDescriptor) else {
+            return nil
         }
-        return nil
+        
+        return texture
     }
     
 }

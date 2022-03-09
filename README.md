@@ -12,7 +12,7 @@ Written in **Swift** using **Metal API** and **SwiftUI**.
 ## Features
 - [x] Keyboard controls (Arrow keys),
 - [x] Calculations offloaded to Compute shaders,
-- [x] Managed using SPM with separate Core module for rendering logic. 
+- [x] Managed using SPM with separate Core module. 
 
 ## Building
 - Clone the repository,

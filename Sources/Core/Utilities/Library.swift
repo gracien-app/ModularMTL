@@ -23,7 +23,21 @@ public class Library {
         
         for function in functions {
             mtlFunctions[function] = metalLibrary.makeFunction(name: function)
-            mtlFunctions[function]?.label = function.uppercased()
+            mtlFunctions[function]?.label = function
+        }
+    }
+    
+    public func addFunction(name: String) -> MTLFunction? {
+        if let function = mtlFunctions[name] {
+            return function
+        }
+        else {
+            if let function = metalLibrary.makeFunction(name: name) {
+                function.label = name
+                mtlFunctions[name] = function
+                return function
+            }
+            return nil
         }
     }
     
@@ -35,7 +49,7 @@ public class Library {
     }
     
     func loadDefaultLibrary(_ device: MTLDevice) -> MTLLibrary? {
-        let path = "Contents/Resources/ModularMTLCore_ModularMTLCore.bundle"
+        let path = "Contents/Resources/ModularMTL_ModularMTLCore.bundle"
         guard let bundle = Bundle(url:Bundle.main.bundleURL.appendingPathComponent(path)) else {
           fatalError("[Metal] Error accessing internal ModularMTLCore bundle. Unable to load metallib.")
         }

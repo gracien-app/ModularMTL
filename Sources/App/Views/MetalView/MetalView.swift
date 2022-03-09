@@ -11,7 +11,7 @@ import ModularMTLCore
 
 struct MetalView: NSViewRepresentable {
     
-    @EnvironmentObject var data: UIDataObject
+    @EnvironmentObject var data: RendererObservableData
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self, data: data)
@@ -27,7 +27,6 @@ struct MetalView: NSViewRepresentable {
         
         metalView.framebufferOnly = true
         metalView.enableSetNeedsDisplay = false
-        metalView.sampleCount = 1
         metalView.preferredFramesPerSecond = data.targetFPS
         metalView.colorPixelFormat = .bgra8Unorm_srgb
         

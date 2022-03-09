@@ -1,50 +1,27 @@
 //
-//  VisualiserRenderer.swift
+//  ModularRenderer+Extensions.swift
+//  
 //
-//
-//  Created by Gracjan J on 13/02/2022.
+//  Created by Gracjan Jeżewski on 09/03/2022.
 //
 
 import Foundation
 import MetalKit
-import MetalPerformanceShaders
 
-public class VisualiserRenderer: Renderer {
+extension ModularRenderer {
     
-    var device: MTLDevice
-    var data: UIDataObject
-    var library: Library
-    
-    var pointsBuffer: ManagedBuffer<simd_float2>
-    var linesBuffer: ManagedBuffer<simd_float4>
-    
-    var offscreenRenderTexture: MTLTexture
-    
-    var blurTexture: MTLTexture
-    var blurKernel: MPSUnaryImageKernel
-    
-    
-    let offscreenRenderPD: MTLRenderPassDescriptor
-    let offscreenRenderPSO: MTLRenderPipelineState
-    
-    let computeLinesPSO: MTLComputePipelineState
-    let computePointsPSO: MTLComputePipelineState
-    
-    private var M: Float!
-    private var linesValid: Bool = true
-    var currentMultiplier: Float {
-        get {
-            return M
+    public func adjustPointCount(by offset: Int) {
+        let newCount = Int(data.pointsCount) + offset
+        if newCount > 2 {
+            data.pointsCount = UInt(newCount)
         }
-        set {
-            if newValue != M {
-                linesValid = false
-            }
-            else {
-                linesValid = true
-            }
-            M = newValue
+        else {
+            data.pointsCount = 2
         }
+    }
+    
+    public func adjustMultiplier(by offset: Float) {
+        data.multiplier += offset
     }
     
     public func getDrawable() -> MTLTexture {
@@ -60,55 +37,6 @@ public class VisualiserRenderer: Renderer {
             return function
         }
         return nil
-    }
-    
-    public init(with device: MTLDevice, _ data: UIDataObject) {
-        self.device = device
-        self.data = data
-        self.library = Library(with: device,
-                               functions: ["computePointsFunction", "computeLinesFunction",
-                                           "fragmentFunction", "quadFragmentFunction",
-                                           "linesVertexFunction", "quadVertexFunction"])
-        
-        let minimumSize: UInt = 200
-        self.pointsBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimumSize, label: "PointsBuffer")
-        self.linesBuffer = ManagedBuffer(with: device, count: data.pointsCount, minimum: minimumSize, label: "LinesBuffer")
-        
-        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
-        renderPipelineDescriptor.vertexFunction = library.getFunction(name: "linesVertexFunction")
-        renderPipelineDescriptor.fragmentFunction = library.getFunction(name: "fragmentFunction")
-        renderPipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm_srgb
-        renderPipelineDescriptor.sampleCount = data.sampleCount
-        
-        do {
-            computePointsPSO = try device.makeComputePipelineState(function: library.getFunction(name: "computePointsFunction")!)
-            computeLinesPSO = try device.makeComputePipelineState(function: library.getFunction(name: "computeLinesFunction")!)
-            offscreenRenderPSO = try device.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
-        } catch {
-            fatalError("[Metal] Error creating PSO.")
-        }
-        
-        self.offscreenRenderTexture = TextureManager.getTexture(with: device,
-                                                                      format: .bgra8Unorm_srgb,
-                                                                      sizeWH: (Int(data.width / 2.0 + 28) * 2,
-                                                                               Int(data.height + 28) * 2),
-                                                                      type: .renderTarget)!
-        
-        self.blurTexture = TextureManager.getTexture(with: device,
-                                                     format: .bgra8Unorm_srgb,
-                                                     sizeWH: (Int(data.width / 2.0 + 28) * 2,
-                                                              Int(data.height + 28) * 2),
-                                                     type: .readWrite)!
-        
-        self.offscreenRenderPD = MTLRenderPassDescriptor()
-        self.offscreenRenderPD.colorAttachments[0].texture = self.offscreenRenderTexture
-        self.offscreenRenderPD.colorAttachments[0].loadAction = .clear
-        self.offscreenRenderPD.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-        self.offscreenRenderPD.colorAttachments[0].storeAction = .store
-        
-        self.blurKernel = MPSImageGaussianBlur(device: device, sigma: 55)
-        
-        self.currentMultiplier = data.multiplier
     }
 
     public func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer) {
@@ -203,5 +131,5 @@ public class VisualiserRenderer: Renderer {
         return ( MTLSize(width: bufferSize, height: 1, depth: 1),
                  MTLSize(width: threadGroupSize, height: 1, depth: 1))
     }
-
+    
 }
