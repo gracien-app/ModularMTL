@@ -24,8 +24,9 @@ Once set up, it can create application bundle with proper structure and Metal li
 git clone https://github.com/JezewskiG/ModularMTL
 cd ModularMTL
 
-# Build Universal binary in Release configuration. Application bundle will be created in your current directory.
-swift bundler build -c release -o .
+# Build Universal binary in Release configuration. 
+# Application bundle will be created in your current directory.
+swift-bundler build -c release -o . -u
 ```
 
 *Universal application bundle available in releases.*
