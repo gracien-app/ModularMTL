@@ -15,10 +15,17 @@ Written in **Swift** using **Metal API** and **SwiftUI**.
 - [x] Managed using SPM with separate Core module. 
 
 ## Building
-- Clone the repository,
-- Use `swift build -c release --arch arm64 --arch x86_64` inside cloned folder to build universal binary in release configuration,
+Binary must be bundled together with Core bundle containing default Metal library (`.metallib` file).  
+The easiest way to do that, is using [swift-bundler](https://github.com/stackotter/swift-bundler) tool.  
 
-## Running
-- Binary must be bundled together with Core bundle containing default metal library (`.metallib` file)
+Once set up, it can create application bundle with proper structure and Metal library included in Core bundle.
+
+```sh
+git clone https://github.com/JezewskiG/ModularMTL
+cd ModularMTL
+
+# Build Universal binary in Release configuration. Application bundle will be created in your current directory.
+swift bundler build -c release -o .
+```
 
 *Universal application bundle available in releases.*
