@@ -1,3 +1,10 @@
+//
+//  CustomMTKView.swift
+//
+//
+//  Created by Gracjan J on 13/02/2022.
+//
+
 import MetalKit
 import ModularMTLCore
 

@@ -7,6 +7,16 @@
 
 import SwiftUI
 
+public enum RendererError: LocalizedError {
+    case PipelineCreationError(Details: String)
+    case BufferCreationError(Details: String)
+    case TextureCreationError(Details: String)
+    case LibraryCreationError(Details: String)
+    case UnsupportedDevice(Details: String)
+    case FatalError(Details: String)
+}
+
+
 public class RendererObservableData: ObservableObject {
     
     public init() {}
@@ -25,7 +35,7 @@ public class RendererObservableData: ObservableObject {
     public var showAlert: Bool = false
     public var blur: Bool = true
     
-    public var status: MetalFeatureStatus = .Full  {
+    @Published public var status: MetalFeatureStatus = .Full  {
         didSet {
             switch status {
                 case .Full:
@@ -39,6 +49,12 @@ public class RendererObservableData: ObservableObject {
         }
     }
     
+    public var error: Error? {
+        didSet {
+            status = .FatalError
+        }
+    }
+    
 }
 
 public extension RendererObservableData {
@@ -48,8 +64,13 @@ public extension RendererObservableData {
         frametime = average
     }
     
-    func getStatusMessage() -> String {
-        return status.rawValue
+    func getAlertMessage() -> String {
+        if let error = error {
+            return "\(error)"
+        }
+        else {
+            return status.rawValue
+        }
     }
 
     var width: CGFloat {
@@ -67,7 +88,7 @@ public extension RendererObservableData {
     enum MetalFeatureStatus: String {
         case Full = "Full application functionality."
         case Limited = "Your device does not support required Metal API feature set.\n\n Application functionality is reduced."
-        case MetalUnsupported = "Your device does not support Metal API."
+        case FatalError = "Your device does not support Metal API."
     }
     
 }

@@ -2,7 +2,7 @@
 //  ModularRenderer+Extensions.swift
 //  
 //
-//  Created by Gracjan Jeżewski on 09/03/2022.
+//  Created by Gracjan J on 09/03/2022.
 //
 
 import Foundation
@@ -20,26 +20,28 @@ extension ModularRenderer {
         }
     }
     
+    
     public func adjustMultiplier(by offset: Float) {
         data.multiplier += offset
     }
     
-    public func getDrawable() -> MTLTexture {
-        return self.offscreenRenderTexture
-    }
     
-    public func getBlurTexture() -> MTLTexture {
-        return self.blurTexture
-    }
-    
-    public func getFunction(_ name: String) -> MTLFunction? {
-        if let function = library.getFunction(name: name) {
-            return function
-        }
-        return nil
+    public func encodeDrawToView(to commandBuffer: MTLCommandBuffer,
+                                 with descriptor: MTLRenderPassDescriptor) {
+        
+        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)!
+        
+        renderEncoder.setRenderPipelineState(self.drawInViewPSO)
+        renderEncoder.setFragmentTexture(self.renderTargetTexture, index: 0)
+        renderEncoder.setFragmentTexture(self.blurTexture, index: 1)
+        renderEncoder.setFragmentBytes(&data.blur, length: MemoryLayout<uint8>.stride, index: 0)
+        renderEncoder.setFragmentBytes(&data.multiplier, length: MemoryLayout<simd_float1>.stride, index: 1)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        renderEncoder.endEncoding()
     }
 
-    public func draw(with device: MTLDevice, _ commandBuffer: MTLCommandBuffer) {
+    
+    public func encodeDraw(to commandBuffer: MTLCommandBuffer) {
         let pointsCount = simd_uint1(data.pointsCount)
         self.currentMultiplier = data.multiplier
         
@@ -68,7 +70,7 @@ extension ModularRenderer {
             
             if data.blur == true {
                 blurKernel.encode(commandBuffer: commandBuffer,
-                                  sourceTexture: offscreenRenderTexture,
+                                  sourceTexture: renderTargetTexture,
                                   destinationTexture: blurTexture)
             }
         }
@@ -78,6 +80,7 @@ extension ModularRenderer {
         }
     }
     
+    
     private func encodePointsPass(target buffer: MTLBuffer,
                                   commandBuffer: MTLCommandBuffer,
                                   elementCount: simd_uint1) {
@@ -85,7 +88,7 @@ extension ModularRenderer {
         
         let fillBufferEncoder = commandBuffer.makeComputeCommandEncoder()
         fillBufferEncoder?.setComputePipelineState(self.computePointsPSO)
-        fillBufferEncoder?.label = "Compute Points - Encoder"
+        fillBufferEncoder?.label = "Compute Points - Pass"
         
         fillBufferEncoder?.setBuffer(buffer, offset: 0, index: 0)
         fillBufferEncoder?.setBytes(&pointsCount, length: MemoryLayout<simd_uint1>.stride, index: 1)
@@ -96,6 +99,7 @@ extension ModularRenderer {
         
         fillBufferEncoder?.endEncoding()
     }
+    
     
     private func encodeLinesPass(from pointsBuffer: MTLBuffer,
                                  to linesBuffer: MTLBuffer,
@@ -108,7 +112,7 @@ extension ModularRenderer {
         
         let computeLinesEncoder = commandBuffer.makeComputeCommandEncoder()
         computeLinesEncoder?.setComputePipelineState(self.computeLinesPSO)
-        computeLinesEncoder?.label = "Compute Lines - Encoder"
+        computeLinesEncoder?.label = "Compute Lines - Pass"
         
         computeLinesEncoder?.setBuffer(pointsBuffer, offset: 0, index: 0)
         computeLinesEncoder?.setBuffer(linesBuffer, offset: 0, index: 1)
@@ -122,6 +126,7 @@ extension ModularRenderer {
         computeLinesEncoder?.endEncoding()
     }
     
+    
     private func getDispatchSize(for pso: MTLComputePipelineState, bufferSize: Int) -> (MTLSize, MTLSize) {
         var threadGroupSize = pso.maxTotalThreadsPerThreadgroup
         if threadGroupSize > bufferSize {
@@ -131,5 +136,4 @@ extension ModularRenderer {
         return ( MTLSize(width: bufferSize, height: 1, depth: 1),
                  MTLSize(width: threadGroupSize, height: 1, depth: 1))
     }
-    
 }

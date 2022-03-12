@@ -33,7 +33,7 @@ class ManagedBuffer<Element> {
         return buffer
     }
     
-    public init(with device: MTLDevice, count: UInt, minimum minCap: UInt, label: String) {
+    public init?(with device: MTLDevice, count: UInt, minimum minCap: UInt, label: String) throws {
         self.device = device
         
         let minimum = minCap / 2
@@ -42,7 +42,7 @@ class ManagedBuffer<Element> {
         let logicalSize = Int(countAdjusted) * MemoryLayout<Element>.stride
         
         guard let buffer = device.makeBuffer(length: logicalSize, options: .storageModePrivate) else {
-            fatalError("[PointsBuffer] Error creating buffer with logical size of \(logicalSize) bytes.")
+            throw RendererError.BufferCreationError(Details: "Error creating \(label) with logical size of \(logicalSize) bytes")
         }
         
         self.buffer = buffer

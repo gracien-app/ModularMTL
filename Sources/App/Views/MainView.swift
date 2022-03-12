@@ -26,12 +26,12 @@ struct MainView: View {
             .ignoresSafeArea(.all, edges: .top)
             .alert("ModularMTL", isPresented: $data.showAlert, actions: {
                 Button("Confirm") {
-                    if data.status == .MetalUnsupported {
+                    if data.status == .FatalError {
                         exit(1)
                     }
                 }
             }, message: {
-                Text(data.getStatusMessage())
+                Text(data.getAlertMessage())
             })
             
         }

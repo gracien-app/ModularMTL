@@ -10,36 +10,30 @@ import MetalKit
 
 public class Library {
     
+    // MARK: - Parameters
     private var metalLibrary: MTLLibrary!
     private var mtlFunctions: [String: MTLFunction] = [:]
     
-    public init(with device: MTLDevice, functions: [String]) {
-        metalLibrary = loadDefaultLibrary(device)!
+    // MARK: - Methods
+    public init?(with device: MTLDevice, functions: [String]) throws {
         
-        guard let library = loadDefaultLibrary(device) else {
-            fatalError("[Metal] Unable to create default Metal library.")
+        switch loadDefaultLibrary(device) {
+            case .success(let library):
+                self.metalLibrary = library
+            case .failure(let error):
+                throw error
         }
-        self.metalLibrary = library
         
         for function in functions {
-            mtlFunctions[function] = metalLibrary.makeFunction(name: function)
-            mtlFunctions[function]?.label = function
+            switch createFunction(name: function) {
+                case .failure(let error):
+                    throw error as RendererError
+                default:
+                    break
+            }
         }
     }
     
-    public func addFunction(name: String) -> MTLFunction? {
-        if let function = mtlFunctions[name] {
-            return function
-        }
-        else {
-            if let function = metalLibrary.makeFunction(name: name) {
-                function.label = name
-                mtlFunctions[name] = function
-                return function
-            }
-            return nil
-        }
-    }
     
     public func getFunction(name: String) -> MTLFunction? {
         if let function = mtlFunctions[name] {
@@ -48,16 +42,33 @@ public class Library {
         return nil
     }
     
-    func loadDefaultLibrary(_ device: MTLDevice) -> MTLLibrary? {
+    
+    public func createFunction(name: String) -> Result<MTLFunction, RendererError> {
+        if let function = mtlFunctions[name] {
+            return .success(function)
+        }
+        else {
+            if let function = metalLibrary.makeFunction(name: name) {
+                function.label = name
+                mtlFunctions[name] = function
+                return .success(function)
+            }
+            return .failure(.LibraryCreationError(Details: "Unable to create function: \(name)"))
+        }
+    }
+    
+    
+    func loadDefaultLibrary(_ device: MTLDevice) -> Result<MTLLibrary, RendererError> {
         let path = "Contents/Resources/ModularMTL_ModularMTLCore.bundle"
+       
         guard let bundle = Bundle(url:Bundle.main.bundleURL.appendingPathComponent(path)) else {
-          fatalError("[Metal] Error accessing internal ModularMTLCore bundle. Unable to load metallib.")
+            return .failure(.LibraryCreationError(Details: "Unable to find bundle at \(path)"))
         }
       
         do {
-            return try device.makeDefaultLibrary(bundle: bundle)
+            return .success(try device.makeDefaultLibrary(bundle: bundle))
         } catch {
-            return nil
+            return .failure(.LibraryCreationError(Details: "Unable to create default Metal library from bundle."))
         }
     }
 }

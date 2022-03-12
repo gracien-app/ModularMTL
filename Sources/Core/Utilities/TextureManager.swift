@@ -13,7 +13,9 @@ public enum TextureManager {
     public static func getTexture(with device: MTLDevice,
                                   format: MTLPixelFormat,
                                   sizeWH: (Int, Int),
-                                  type: TextureType) -> MTLTexture? {
+                                  type: TextureType,
+                                  label: String? = nil) -> Result<MTLTexture, RendererError> {
+        
         let texDescriptor = MTLTextureDescriptor()
         texDescriptor.width = sizeWH.0
         texDescriptor.height = sizeWH.1
@@ -33,10 +35,15 @@ public enum TextureManager {
         }
         
         guard let texture = device.makeTexture(descriptor: texDescriptor) else {
-            return nil
+            let detailLabel = label ?? "Unlabeled texture"
+            return .failure(.TextureCreationError(Details: "\(detailLabel)"))
         }
         
-        return texture
+        if let label = label {
+            texture.label = label
+        }
+        
+        return .success(texture)
     }
     
 }
