@@ -10,6 +10,7 @@ import MetalKit
 
 extension ModularRenderer {
     
+    // MARK: - Public extensions
     public func adjustPointCount(by offset: Int) {
         let newCount = Int(data.pointsCount) + offset
         if newCount > 2 {
@@ -80,7 +81,7 @@ extension ModularRenderer {
         }
     }
     
-    
+    // MARK: - Private extensions
     private func encodePointsPass(target buffer: MTLBuffer,
                                   commandBuffer: MTLCommandBuffer,
                                   elementCount: simd_uint1) {

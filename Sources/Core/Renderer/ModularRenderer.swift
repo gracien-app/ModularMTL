@@ -11,24 +11,26 @@ import MetalPerformanceShaders
 
 public class ModularRenderer {
     
+    // MARK: - Internal parameters
     var device: MTLDevice!
-    public var data: RendererObservableData
-    public var library: Library!
     
-    var pointsBuffer: ManagedBuffer<simd_float2>!
-    var linesBuffer: ManagedBuffer<simd_float4>!
-    
-    var blurKernel: MPSUnaryImageKernel!
+    var drawInViewPSO: MTLRenderPipelineState!
+    var computeLinesPSO: MTLComputePipelineState!
+    var computePointsPSO: MTLComputePipelineState!
+    var offscreenRenderPSO: MTLRenderPipelineState!
     
     var offscreenRenderPD: MTLRenderPassDescriptor!
     
     var blurTexture: MTLTexture!
     var renderTargetTexture: MTLTexture!
     
-    var drawInViewPSO: MTLRenderPipelineState!
-    var computeLinesPSO: MTLComputePipelineState!
-    var computePointsPSO: MTLComputePipelineState!
-    var offscreenRenderPSO: MTLRenderPipelineState!
+    var library: Library!
+    var data: RendererObservableData
+    
+    var linesBuffer: ManagedBuffer<simd_float4>!
+    var pointsBuffer: ManagedBuffer<simd_float2>!
+    
+    var blurKernel: MPSUnaryImageKernel!
     
     var M: Float!
     var linesValid: Bool = true
@@ -124,11 +126,13 @@ public class ModularRenderer {
     private func preparePipelines() -> Result<Void, RendererError> {
         do {
             let offscreenRPD = MTLRenderPipelineDescriptor()
+            offscreenRPD.label = "Offscreen Render Pass"
             offscreenRPD.vertexFunction = try library.createFunction(name: "linesVertexFunction").get()
             offscreenRPD.fragmentFunction = try library.createFunction(name: "fragmentFunction").get()
             offscreenRPD.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm_srgb
             
             let quadRPD = MTLRenderPipelineDescriptor()
+            quadRPD.label = "Draw-in-View Render Pass"
             quadRPD.vertexFunction = try library.createFunction(name: "quadVertexFunction").get()
             quadRPD.fragmentFunction = try library.createFunction(name: "quadFragmentFunction").get()
             quadRPD.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm_srgb

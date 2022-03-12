@@ -66,7 +66,7 @@ class Coordinator: NSObject, MTKViewDelegate {
                 let msTime = secTime * 1000
                 
                 DispatchQueue.main.async {
-                    self.renderer.data.averageFrametime(new: msTime)
+                    self.parent.data.averageFrametime(new: msTime)
                 }
             }
             

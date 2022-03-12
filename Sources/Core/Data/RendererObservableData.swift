@@ -7,33 +7,23 @@
 
 import SwiftUI
 
-public enum RendererError: LocalizedError {
-    case PipelineCreationError(Details: String)
-    case BufferCreationError(Details: String)
-    case TextureCreationError(Details: String)
-    case LibraryCreationError(Details: String)
-    case UnsupportedDevice(Details: String)
-    case FatalError(Details: String)
-}
-
-
 public class RendererObservableData: ObservableObject {
     
     public init() {}
     
     @Published public var pointsCount: UInt = 100
     @Published public var multiplier: Float = 2
-    @Published public var frametime: Double = 0
     
     public var circleRadius: Float = 0.85
     public let animationStep: Float = 0.005
-    
     public let targetFPS: Int = 60
-    private var resolution: (CGFloat, CGFloat) = (1300, 650)
+    private let resolution: (CGFloat, CGFloat) = (1300, 650)
     
     public var animation: Bool = false
     public var showAlert: Bool = false
     public var blur: Bool = true
+    
+    @Published public var frametime: Double = 0
     
     @Published public var status: MetalFeatureStatus = .Full  {
         didSet {
@@ -54,11 +44,10 @@ public class RendererObservableData: ObservableObject {
             status = .FatalError
         }
     }
-    
 }
 
+
 public extension RendererObservableData {
-    
     func averageFrametime(new value: Double) {
         let average = (value + frametime) / 2.0
         frametime = average
@@ -90,5 +79,4 @@ public extension RendererObservableData {
         case Limited = "Your device does not support required Metal API feature set.\n\n Application functionality is reduced."
         case FatalError = "Your device does not support Metal API."
     }
-    
 }
