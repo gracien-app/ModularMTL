@@ -13,6 +13,7 @@ public class RendererObservableData: ObservableObject {
     
     @Published public var pointsCount: UInt = 100
     @Published public var multiplier: Float = 2
+    @Published public var frametime: Double = 0
     
     public var circleRadius: Float = 0.85
     public let animationStep: Float = 0.005
@@ -21,9 +22,8 @@ public class RendererObservableData: ObservableObject {
     
     public var animation: Bool = false
     public var showAlert: Bool = false
-    public var blur: Bool = true
+    public var blurEnabled: Bool = true
     
-    @Published public var frametime: Double = 0
     
     @Published public var status: MetalFeatureStatus = .Full  {
         didSet {
@@ -33,11 +33,12 @@ public class RendererObservableData: ObservableObject {
                     break
                 default:
                     showAlert = true
-                    blur = false
+                    blurEnabled = false
                     break
             }
         }
     }
+    
     
     public var error: Error? {
         didSet {
@@ -53,6 +54,7 @@ public extension RendererObservableData {
         frametime = average
     }
     
+    
     func getAlertMessage() -> String {
         if let error = error {
             return "\(error)"
@@ -61,22 +63,53 @@ public extension RendererObservableData {
             return status.rawValue
         }
     }
-
+    
+    
     var width: CGFloat {
         return resolution.0
     }
 
+    
     var height: CGFloat {
         return resolution.1
     }
     
-    var frametimeInMs: String {
-        return String(format: "%.1f", frametime) + "ms"
+    
+    var renderAreaWidth: CGFloat {
+        return (width / 2.0) + 28
     }
     
+    
+    var renderAreaHeight: CGFloat {
+        return height + 28
+    }
+    
+    
+    func getDataString(type: DataStringType) -> String {
+        switch type {
+            case .M:
+                return String(format: "%u", self.pointsCount)
+            case .N:
+                return String(format: "%.2f", self.multiplier)
+            case .OFFSET:
+                return String(format: "%.3f", self.animationStep)
+            case .FRAMETIME:
+                return String(format: "%.1f", frametime) + "ms"
+        }
+    }
+    
+
     enum MetalFeatureStatus: String {
         case Full = "Full application functionality."
         case Limited = "Your device does not support required Metal API feature set.\n\n Application functionality is reduced."
         case FatalError = "Your device does not support Metal API."
+    }
+    
+    
+    enum DataStringType {
+        case M
+        case N
+        case OFFSET
+        case FRAMETIME
     }
 }

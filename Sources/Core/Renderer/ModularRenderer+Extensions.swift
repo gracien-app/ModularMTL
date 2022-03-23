@@ -35,7 +35,7 @@ extension ModularRenderer {
         renderEncoder.setRenderPipelineState(self.drawInViewPSO)
         renderEncoder.setFragmentTexture(self.renderTargetTexture, index: 0)
         renderEncoder.setFragmentTexture(self.blurTexture, index: 1)
-        renderEncoder.setFragmentBytes(&data.blur, length: MemoryLayout<uint8>.stride, index: 0)
+        renderEncoder.setFragmentBytes(&data.blurEnabled, length: MemoryLayout<uint8>.stride, index: 0)
         renderEncoder.setFragmentBytes(&data.multiplier, length: MemoryLayout<simd_float1>.stride, index: 1)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
@@ -43,33 +43,24 @@ extension ModularRenderer {
 
     
     public func encodeDraw(to commandBuffer: MTLCommandBuffer) {
-        let pointsCount = simd_uint1(data.pointsCount)
-        self.currentMultiplier = data.multiplier
+        let tempN = simd_uint1(data.pointsCount)
+        let tempM = data.multiplier
         
-        pointsBuffer.updateStatus(points: UInt(pointsCount))
-        linesBuffer.updateStatus(points: UInt(pointsCount))
+        linesBuffer.updateStatus(points: UInt(tempN), multiplier: tempM)
         
-        if pointsBuffer.isValid == false {
-            encodePointsPass(target: pointsBuffer.contents(),
-                             commandBuffer: commandBuffer,
-                             elementCount: pointsCount)
-            self.linesValid = false
-        }
-        
-        if self.linesValid == false {
-            encodeLinesPass(from: pointsBuffer.contents(),
-                                  to: linesBuffer.contents(),
-                                  commandBuffer: commandBuffer,
-                                  elementCount: pointsCount,
-                                  multiplier: self.currentMultiplier)
+        if linesBuffer.isValid == false {
+            encodeLinesPass(storage: linesBuffer.contents(),
+                            commandBuffer: commandBuffer,
+                            elementCount: tempN,
+                            multiplier: tempM)
             
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: self.offscreenRenderPD)!
             renderEncoder.setRenderPipelineState(offscreenRenderPSO)
             renderEncoder.setVertexBuffer(linesBuffer.contents(), offset: 0, index: 0)
-            renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(pointsCount*2))
+            renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(tempN*2))
             renderEncoder.endEncoding()
             
-            if data.blur == true {
+            if data.blurEnabled {
                 blurKernel.encode(commandBuffer: commandBuffer,
                                   sourceTexture: renderTargetTexture,
                                   destinationTexture: blurTexture)
@@ -81,29 +72,9 @@ extension ModularRenderer {
         }
     }
     
+    
     // MARK: - Private extensions
-    private func encodePointsPass(target buffer: MTLBuffer,
-                                  commandBuffer: MTLCommandBuffer,
-                                  elementCount: simd_uint1) {
-        var pointsCount = elementCount
-        
-        let fillBufferEncoder = commandBuffer.makeComputeCommandEncoder()
-        fillBufferEncoder?.setComputePipelineState(self.computePointsPSO)
-        fillBufferEncoder?.label = "Compute Points - Pass"
-        
-        fillBufferEncoder?.setBuffer(buffer, offset: 0, index: 0)
-        fillBufferEncoder?.setBytes(&pointsCount, length: MemoryLayout<simd_uint1>.stride, index: 1)
-        fillBufferEncoder?.setBytes(&data.circleRadius, length: MemoryLayout<simd_float1>.stride, index: 2)
-        
-        let dispatchSize = getDispatchSize(for: self.computePointsPSO, bufferSize: Int(pointsCount))
-        fillBufferEncoder?.dispatchThreads(dispatchSize.0, threadsPerThreadgroup: dispatchSize.1)
-        
-        fillBufferEncoder?.endEncoding()
-    }
-    
-    
-    private func encodeLinesPass(from pointsBuffer: MTLBuffer,
-                                 to linesBuffer: MTLBuffer,
+    private func encodeLinesPass(storage linesBuffer: MTLBuffer,
                                  commandBuffer: MTLCommandBuffer,
                                  elementCount: simd_uint1,
                                  multiplier: simd_float1) {
@@ -115,11 +86,10 @@ extension ModularRenderer {
         computeLinesEncoder?.setComputePipelineState(self.computeLinesPSO)
         computeLinesEncoder?.label = "Compute Lines - Pass"
         
-        computeLinesEncoder?.setBuffer(pointsBuffer, offset: 0, index: 0)
-        computeLinesEncoder?.setBuffer(linesBuffer, offset: 0, index: 1)
-        computeLinesEncoder?.setBytes(&pointsCount, length: MemoryLayout<simd_uint1>.stride, index: 2)
-        computeLinesEncoder?.setBytes(&multiplier, length: MemoryLayout<simd_float1>.stride, index: 3)
-        computeLinesEncoder?.setBytes(&data.circleRadius, length: MemoryLayout<simd_float1>.stride, index: 4)
+        computeLinesEncoder?.setBuffer(linesBuffer, offset: 0, index: 0)
+        computeLinesEncoder?.setBytes(&pointsCount, length: MemoryLayout<simd_uint1>.stride, index: 1)
+        computeLinesEncoder?.setBytes(&multiplier, length: MemoryLayout<simd_float1>.stride, index: 2)
+        computeLinesEncoder?.setBytes(&data.circleRadius, length: MemoryLayout<simd_float1>.stride, index: 3)
          
         let dispatchSize = getDispatchSize(for: self.computeLinesPSO, bufferSize: Int(pointsCount))
         computeLinesEncoder?.dispatchThreads(dispatchSize.0, threadsPerThreadgroup: dispatchSize.1)

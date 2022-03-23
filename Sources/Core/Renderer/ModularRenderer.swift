@@ -16,7 +16,6 @@ public class ModularRenderer {
     
     var drawInViewPSO: MTLRenderPipelineState!
     var computeLinesPSO: MTLComputePipelineState!
-    var computePointsPSO: MTLComputePipelineState!
     var offscreenRenderPSO: MTLRenderPipelineState!
     
     var offscreenRenderPD: MTLRenderPassDescriptor!
@@ -28,22 +27,8 @@ public class ModularRenderer {
     var data: RendererObservableData
     
     var linesBuffer: ManagedBuffer<simd_float4>!
-    var pointsBuffer: ManagedBuffer<simd_float2>!
     
     var blurKernel: MPSUnaryImageKernel!
-    
-    var M: Float!
-    var linesValid: Bool = true
-    
-    var currentMultiplier: Float {
-        get {
-            return M
-        }
-        set {
-            linesValid = newValue == M ? true : false
-            M = newValue
-        }
-    }
     
     
     // MARK: - Init methods
@@ -79,7 +64,7 @@ public class ModularRenderer {
     
     private func prepareLibrary() -> Result<Void, RendererError> {
         let functionsList = [
-            "computePointsFunction", "computeLinesFunction",
+            "computeLinesFunction",
             "fragmentFunction", "linesVertexFunction",
             "quadFragmentFunction", "quadVertexFunction",
         ]
@@ -99,14 +84,9 @@ public class ModularRenderer {
     
     
     private func prepareBuffers() -> Result<Void, RendererError> {
-        let minimumSize: UInt = 200
+        let minimumSize: UInt = 100
         
         do {
-            self.pointsBuffer = try ManagedBuffer(with: device,
-                                                  count: data.pointsCount,
-                                                  minimum: minimumSize,
-                                                  label: "PointsBuffer")
-            
             self.linesBuffer = try ManagedBuffer(with: device,
                                                  count: data.pointsCount,
                                                  minimum: minimumSize,
@@ -140,9 +120,6 @@ public class ModularRenderer {
             self.offscreenRenderPSO = try device.makeRenderPipelineState(descriptor: offscreenRPD)
             self.drawInViewPSO = try device.makeRenderPipelineState(descriptor: quadRPD)
             
-            let computePointsFunction = try library.createFunction(name: "computePointsFunction").get()
-            self.computePointsPSO = try device.makeComputePipelineState(function: computePointsFunction)
-            
             let computeLinesFunction = try library.createFunction(name: "computeLinesFunction").get()
             self.computeLinesPSO = try device.makeComputePipelineState(function: computeLinesFunction)
         }
@@ -159,14 +136,14 @@ public class ModularRenderer {
     
     private func prepareTextures() -> Result<Void, RendererError> {
         let renderTargetTextureResult = TextureManager.getTexture(with: device,
-                                                           format: .bgra8Unorm_srgb,
-                                                           sizeWH: (Int(data.width / 2.0 + 28) * 2, Int(data.height + 28) * 2),
-                                                           type: .renderTarget,
-                                                           label: "RenderTargetTexture")
+                                                                  format: .bgra8Unorm_srgb,
+                                                                  sizeWH: (Int(data.renderAreaWidth * 2), Int(data.renderAreaHeight * 2)),
+                                                                  type: .renderTarget,
+                                                                  label: "RenderTargetTexture")
         
         let blurTextureResult = TextureManager.getTexture(with: device,
                                                           format: .bgra8Unorm_srgb,
-                                                          sizeWH: (Int(data.width / 2.0 + 28) * 2, Int(data.height + 28) * 2),
+                                                          sizeWH: (Int(data.renderAreaWidth * 2), Int(data.renderAreaHeight * 2)),
                                                           type: .readWrite,
                                                           label: "BlurTexture")
         

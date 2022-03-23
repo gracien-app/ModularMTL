@@ -17,23 +17,26 @@ using namespace metal;
 ///
 /// Check is performed at the beginning to prevent writing to memory outside the bounds of both buffers (identical element count).
 ///
-kernel void computeLinesFunction(device    float2  *pointsBuffer  [[buffer(0)]],
-                                 device    float4  *linesBuffer   [[buffer(1)]],
-                                 constant  uint    &pointsCount   [[buffer(2)]],
-                                 constant  float   &multiplier    [[buffer(3)]],
-                                 constant  float   &radius        [[buffer(4)]],
+kernel void computeLinesFunction(device    float4  *linesBuffer   [[buffer(0)]],
+                                 constant  uint    &pointsCount   [[buffer(1)]],
+                                 constant  float   &multiplier    [[buffer(2)]],
+                                 constant  float   &radius        [[buffer(3)]],
                                  const     uint    index          [[thread_position_in_grid]])
 {
     if (index >= pointsCount) { return; }
     
-    float toIndex = index * multiplier;
-    
     float rotationOffset = M_PI_F;
     float angle = (2 * M_PI_F) / float(pointsCount);
-    float2 toPoint = float2(0.0);
+    
+    float2 fromPoint, toPoint = float2(0.0);
+    
+    fromPoint.x = radius * cos(rotationOffset - angle * index);
+    fromPoint.y = radius * sin(rotationOffset - angle * index);
+    
+    float toIndex = index * multiplier;
     toPoint.x = radius * cos(rotationOffset - angle * toIndex);
     toPoint.y = radius * sin(rotationOffset - angle * toIndex);
 
-    linesBuffer[index] = float4(pointsBuffer[index], toPoint);
+    linesBuffer[index] = float4(fromPoint, toPoint);
     return;
 }

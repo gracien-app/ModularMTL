@@ -30,9 +30,7 @@ struct MetalView: NSViewRepresentable {
         metalView.preferredFramesPerSecond = data.targetFPS
         metalView.colorPixelFormat = .bgra8Unorm_srgb
         
-        let W = Int(data.width/2) + 28
-        let H = Int(data.height) + 28
-        metalView.drawableSize = CGSize(width: W, height: H)
+        metalView.drawableSize = CGSize(width: Int(data.renderAreaWidth), height: Int(data.renderAreaHeight))
    
         metalView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
         
