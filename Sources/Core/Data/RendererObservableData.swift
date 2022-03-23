@@ -11,8 +11,8 @@ public class RendererObservableData: ObservableObject {
     
     public init() {}
     
-    @Published public var pointsCount: UInt = 100
-    @Published public var multiplier: Float = 2
+    @Published public var pointsCount: UInt = 200
+    @Published public var multiplier: Float = 1.5
     @Published public var frametime: Double = 0
     
     public var circleRadius: Float = 0.85
@@ -87,9 +87,9 @@ public extension RendererObservableData {
     
     func getDataString(type: DataStringType) -> String {
         switch type {
-            case .M:
-                return String(format: "%u", self.pointsCount)
             case .N:
+                return String(format: "%u", self.pointsCount)
+            case .M:
                 return String(format: "%.2f", self.multiplier)
             case .OFFSET:
                 return String(format: "%.3f", self.animationStep)
