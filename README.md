@@ -3,16 +3,29 @@
 # ModularMTL
 
 ## About
-Visualisation of modular multiplication on a circle.  
+Modular multiplication on a circle, is a beautiful way to visualise interesting patterns, emerging from basic operation of multiplication. The inspiration for this visualization came from [Times Tables, Mandelbrot and the Heart of Mathematics](https://youtu.be/qhbuKbxJsk8) YouTube video by _Mathologer_.  
+
 Written in **Swift** using **Metal API** and **SwiftUI**.
+
+## Algorithm
+The operating scheme is very simple:
+- Distribute _**N**_ points on the circle equally,
+- Select a multiplier _**M**_
+- For each point **_n_**:
+  - Perform modulo _**N**_ operation on a product between index of point _**n**_ and multiplier _**M**_
+  - The result of the above operation becomes the index of the endpoint _**e**_
+  - Create a connection between points _**n**_ and _**e**_
+
+Computation of connections is offloaded to Compute Shaders, written using Metal Shading Language.
 
 ## Images
 ![Prototype](Images/Preview.png)
 
 ## Features
-- [x] Keyboard controls (Arrow keys),
-- [x] Calculations offloaded to Compute shaders,
-- [x] Managed using SPM with separate Core module. 
+- Animation mode,
+- Parameter controls using arrow keys,
+- Glow effect on supported hardware (Metal Performance Shaders),
+- Managed using Swift Package Manager with separate _Core_ module. 
 
 ## Building
 Binary must be bundled together with Core bundle containing default Metal library (`.metallib` file).  
