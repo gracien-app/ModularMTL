@@ -15,7 +15,7 @@ The operating scheme is very simple:
 - Distribute _**N**_ points on the circle equally,
 - Select a multiplier _**M**_
 - For each point **_n_**:
-  - Perform modulo _**N**_ operation on a product between index of point _**n**_ and multiplier _**M**_
+  - Perform modulo _**N**_ operation on a product of index of point _**n**_ and multiplier _**M**_
   - The result of the above operation becomes the index of the endpoint _**e**_
   - Create a connection between points _**n**_ and _**e**_
 
