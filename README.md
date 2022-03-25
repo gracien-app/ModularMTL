@@ -7,6 +7,9 @@ Modular multiplication on a circle, is a beautiful way to visualise interesting 
 
 Written in **Swift** using **Metal API** and **SwiftUI**.
 
+## Images
+![Prototype](Images/Preview.png)
+
 ## Algorithm
 The operating scheme is very simple:
 - Distribute _**N**_ points on the circle equally,
@@ -18,8 +21,6 @@ The operating scheme is very simple:
 
 Computation of connections is offloaded to Compute Shaders, written using Metal Shading Language.
 
-## Images
-![Prototype](Images/Preview.png)
 
 ## Features
 - Animation mode,
