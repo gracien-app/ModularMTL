@@ -35,7 +35,7 @@ The easiest way to do that, is using [swift-bundler](https://github.com/stackott
 Once set up, it can create application bundle with proper structure and Metal library included in Core bundle.
 
 ```sh
-git clone https://github.com/JezewskiG/ModularMTL
+git clone https://github.com/gracien-app/ModularMTL.git
 cd ModularMTL
 
 # Build Universal binary in Release configuration. 
