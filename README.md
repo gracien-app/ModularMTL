@@ -39,8 +39,8 @@ git clone https://github.com/gracien-app/ModularMTL.git
 cd ModularMTL
 
 # Build Universal binary in Release configuration. 
-# Application bundle will be created in your current directory.
-swift-bundler build -c release -o . -u
+# Application bundle will be created in `build` folder in your ModularMTL directory.
+swift bundler bundle -o build -c release
 ```
 
 *Universal application bundle available in releases.*

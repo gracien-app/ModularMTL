@@ -6,7 +6,7 @@
 //
 
 #include <metal_stdlib>
-#include "../Header.metal"
+#include "Header.metal"
 using namespace metal;
 
 

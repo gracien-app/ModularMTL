@@ -15,7 +15,12 @@ let package = Package(
     ],
     
     targets: [
-        .target(name: "ModularMTLCore", path: "Sources/Core"),
-        .executableTarget(name: "ModularMTL", dependencies: ["ModularMTLCore"], path: "Sources/App")
+        .target(name: "ModularMTLCore",
+                path: "Sources/Core",
+                resources: [.process("Shaders")]),
+        
+        .executableTarget(name: "ModularMTL",
+                          dependencies: ["ModularMTLCore"],
+                          path: "Sources/App")
     ]
 )
