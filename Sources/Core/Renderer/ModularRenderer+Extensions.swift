@@ -33,7 +33,15 @@ extension ModularRenderer {
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)!
         
         renderEncoder.setRenderPipelineState(self.drawInViewPSO)
-        renderEncoder.setFragmentTexture(self.renderTargetTexture, index: 0)
+        
+        // If upscaling is enabled, draw upscaled texture instead of regular.
+        if (data.upscalingEnabled && data.upscalingFactor > 1) {
+            renderEncoder.setFragmentTexture(self.upscaledTargetTexture, index: 0)
+        }
+        else {
+            renderEncoder.setFragmentTexture(self.renderTargetTexture, index: 0)
+        }
+        
         renderEncoder.setFragmentTexture(self.blurTexture, index: 1)
         renderEncoder.setFragmentBytes(&data.blurEnabled, length: MemoryLayout<uint8>.stride, index: 0)
         renderEncoder.setFragmentBytes(&data.multiplier, length: MemoryLayout<simd_float1>.stride, index: 1)
@@ -59,6 +67,14 @@ extension ModularRenderer {
             renderEncoder.setVertexBuffer(linesBuffer.contents(), offset: 0, index: 0)
             renderEncoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: Int(tempN*2))
             renderEncoder.endEncoding()
+            
+            // Encode if upscaling is supported, and upscaling factor is greater than 1.
+            if (data.upscalingEnabled && data.upscalingFactor > 1) {
+                // Upscale using Spatial upscaler from MetalFX.
+                self.spatialScaler.colorTexture = self.renderTargetTexture
+                self.spatialScaler.outputTexture = self.upscaledTargetTexture
+                spatialScaler.encode(commandBuffer: commandBuffer)
+            }
             
             if data.blurEnabled {
                 blurKernel.encode(commandBuffer: commandBuffer,

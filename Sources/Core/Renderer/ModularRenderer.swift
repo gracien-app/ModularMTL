@@ -8,6 +8,7 @@
 import Foundation
 import MetalKit
 import MetalPerformanceShaders
+import MetalFX
 
 public class ModularRenderer {
     
@@ -23,12 +24,17 @@ public class ModularRenderer {
     var blurTexture: MTLTexture!
     var renderTargetTexture: MTLTexture!
     
+    // MetalFX Upscaling
+    var upscaledTargetTexture: MTLTexture!
+    var spatialScaler: MTLFXSpatialScaler!
+    
     var library: Library!
     var data: RendererObservableData
     
     var linesBuffer: ManagedBuffer<simd_float4>!
     
     var blurKernel: MPSUnaryImageKernel!
+    
     
     
     // MARK: - Init methods
@@ -40,7 +46,8 @@ public class ModularRenderer {
                                   { self.prepareBuffers()   },
                                   { self.prepareLibrary()   },
                                   { self.preparePipelines() },
-                                  { self.prepareTextures()  })
+                                  { self.prepareTextures()  },
+                                  { self.prepareUpscaler()  })
         
         switch result {
             case .success():
@@ -58,6 +65,57 @@ public class ModularRenderer {
         else {
             data.status = .Limited
         }
+        return .success(Void())
+    }
+    
+    
+    private func prepareUpscaler() -> Result<Void, RendererError> {
+        // Check if hardware supports Metal 3 to use MetalFX.
+        if device.supportsFamily(.metal3) {
+            
+            let desc = MTLFXSpatialScalerDescriptor()
+            // Take base resolution of render as input resolution for upscaler
+            desc.inputWidth = data.baseResolution.0
+            desc.inputHeight = data.baseResolution.1
+            
+            // Take upscaled resolution (baseResolution * upscalingFactor) as output resolution of upscaler
+            // By default, `upscalingFactor = 2`
+            desc.outputWidth = data.upscaledResolution.0
+            desc.outputHeight = data.upscaledResolution.1
+            
+            desc.colorTextureFormat = .bgra8Unorm_srgb
+            desc.outputTextureFormat = .bgra8Unorm_srgb
+            
+            // Use perceptual color processing mode (SRGB texture format above)
+            desc.colorProcessingMode = .perceptual
+            
+            // Make the upscaler
+            self.spatialScaler = desc.makeSpatialScaler(device: device)
+            
+            guard let spatialScaler else {
+                return .failure(.UnsupportedDevice(Details: "Error creating MetalFX Spatial Scaler."))
+            }
+            
+            // Create a texture for upscaled output. Size matches Spatial Scaler output from descriptor.
+            let upscaledTextureResult = TextureManager.getTexture(with: device,
+                                                                 format: .bgra8Unorm_srgb,
+                                                                 sizeWH: data.upscaledResolution,
+                                                                 type: .renderTarget,
+                                                                 label: "UpscaledRenderTargetTexture")
+            
+            do {
+                self.upscaledTargetTexture = try upscaledTextureResult.get()
+            }
+            catch let error as RendererError {
+                return .failure(error)
+            }
+            catch {
+                return .failure(.TextureCreationError(Details: "Unknown error."))
+            }
+        }
+        
+        // Primitive flag indicating that Upscaling is supported.
+        data.upscalingEnabled = true
         return .success(Void())
     }
     

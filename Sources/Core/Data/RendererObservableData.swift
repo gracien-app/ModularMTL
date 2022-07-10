@@ -23,6 +23,7 @@ public class RendererObservableData: ObservableObject {
     public var animation: Bool = false
     public var showAlert: Bool = false
     public var blurEnabled: Bool = true
+    public var upscalingEnabled: Bool = false
     
     
     @Published public var status: MetalFeatureStatus = .Full  {
@@ -82,6 +83,21 @@ public extension RendererObservableData {
     
     var renderAreaHeight: CGFloat {
         return height + 28
+    }
+    
+    // Base render resulution.
+    var baseResolution: (Int, Int) {
+        return (Int(renderAreaWidth * 2), Int(renderAreaHeight * 2))
+    }
+    
+    // Upscaling factor
+    var upscalingFactor: Int {
+        return 2
+    }
+    
+    // Resolution with upscaling factor taken into account
+    var upscaledResolution: (Int, Int) {
+        return (baseResolution.0 * upscalingFactor, baseResolution.1 * upscalingFactor)
     }
     
     

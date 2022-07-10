@@ -1,0 +1,6 @@
+[apps.ModularMTL]
+bundle_identifier = 'com.gracien.ModularMTL'
+category = 'public.app-category.graphics-design'
+minimum_macos_version = '12.0'
+product = 'ModularMTL'
+version = '1.0.0'
